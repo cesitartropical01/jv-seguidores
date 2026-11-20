@@ -118,13 +118,6 @@ footer li { margin: 4px 0; }
   </section>
 
   <footer>
-    <strong>Advertencias</strong>
-    <ul>
-      <li>El gasto es una constante de <span id="f-gasto"></span> al día: no se lee de Meta / Facebook Ads.</li>
-      <li>El coste por seguidor incluye seguidores orgánicos: no todos los “guardados” vienen de los anuncios.</li>
-      <li>Los días sin lectura no se rellenan; ganados y gasto se agrupan en el tramo que los cubre, con el gasto proporcional a sus horas reales.</li>
-      <li>Fuentes: <code>data/lecturas.csv</code> (lectura automática diaria) y la pestaña “Diario JV Navidad” de la hoja de streams, leída al abrir la página.</li>
-    </ul>
     <p class="muted" id="generado"></p>
   </footer>
 </main>
@@ -374,7 +367,6 @@ function dibujar() {
     $('streams-fuente').innerHTML = `<span class="err">Sin datos de streams: ${esc(errStreams || '')}</span>`;
   }
 
-  $('f-gasto').textContent = `${GASTO_DIARIO} ${MONEDA}`;
   $('generado').textContent = `Página calculada en tu navegador el ${leidoA.toLocaleString('es-ES', { timeZone: 'Europe/Tallinn' })} (Tallin).`;
 }
 
