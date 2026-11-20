@@ -1,0 +1,13 @@
+{
+  "name": "jv-seguidores",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node --test test/calculo.test.mjs",
+    "leer": "node scripts/leer.mjs"
+  },
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.65.1"
+  },
+  "private": true
+}

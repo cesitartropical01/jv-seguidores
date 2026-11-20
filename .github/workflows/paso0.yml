@@ -1,0 +1,38 @@
+# Paso 0: prueba los métodos de lectura en el runner de GitHub (no en el Mac). Solo manual.
+name: Paso 0 - probar métodos de lectura
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps --only-shell chromium
+      - name: Método A (API oficial)
+        id: a
+        continue-on-error: true
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+        run: node scripts/probe-a.mjs evidencia/metodo-a
+      - name: Método B (página pública, Chromium sin sesión)
+        id: b
+        continue-on-error: true
+        run: node scripts/probe-b.mjs evidencia/metodo-b
+      - name: Resumen
+        if: always()
+        run: |
+          {
+            echo "### Método A"; echo '```json'; cat evidencia/metodo-a/informe.json || echo "sin informe"; echo '```'
+            echo "### Método B"; echo '```json'; cat evidencia/metodo-b/informe.json || echo "sin informe"; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidencia-paso0
+          path: evidencia/

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguidores Jingle Vibes</title>
+<meta name="robots" content="noindex">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3f0; --surface-1: #fcfcfb; --border: #e4e2dc;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #77756f;
+  --grid: #e8e6e1; --axis: #b9b7b0;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6;
+  --warn-bg: #fff4dc; --warn-border: #fab219; --crit-bg: #fde8e8; --crit-border: #d03b3b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110; --surface-1: #1a1a19; --border: #2e2e2b;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #96958c;
+    --grid: #2a2a27; --axis: #4a4a45;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9;
+    --warn-bg: #3a2e10; --warn-border: #fab219; --crit-bg: #3a1a1a; --crit-border: #d03b3b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110; --surface-1: #1a1a19; --border: #2e2e2b;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #96958c;
+  --grid: #2a2a27; --axis: #4a4a45;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9;
+  --warn-bg: #3a2e10; --warn-border: #fab219; --crit-bg: #3a1a1a; --crit-border: #d03b3b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin: 0; font-size: 14px; }
+.muted { color: var(--text-muted); font-size: 13px; }
+button.tema { background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.aviso { border-left: 4px solid var(--warn-border); background: var(--warn-bg); padding: 10px 14px; border-radius: 6px; margin: 16px 0 0; }
+.aviso.critico { border-color: var(--crit-border); background: var(--crit-bg); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0; }
+.kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.kpi .et { color: var(--text-secondary); font-size: 13px; }
+.kpi .v { font-size: 30px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 4px; }
+.kpi .d { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.grid2 .card { margin-top: 0; }
+.chart { position: relative; width: 100%; margin-top: 10px; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.chart .lbl { fill: var(--text-secondary); }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+.leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.leyenda i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.tip { position: absolute; pointer-events: none; background: var(--surface-1); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.45;
+  box-shadow: 0 4px 16px rgb(0 0 0 / .12); white-space: nowrap; z-index: 2; display: none; }
+.tip b { font-variant-numeric: tabular-nums; }
+.tabla { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { color: var(--text-secondary); font-weight: 600; }
+th:first-child, td:first-child, td.izq, th.izq { text-align: left; }
+td.nota { text-align: left; white-space: normal; min-width: 180px; color: var(--text-secondary); }
+details summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; margin-top: 10px; }
+footer { margin-top: 28px; color: var(--text-secondary); font-size: 13px; }
+footer li { margin: 4px 0; }
+.err { color: var(--crit-border); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Seguidores de “Christmas Hits &amp; Cozy Classics”</h1>
+      <p class="sub">Seguidores = “guardada N veces” en Spotify · Jingle Vibes · hora de Tallin</p>
+    </div>
+    <button class="tema" id="tema" type="button">Tema: auto</button>
+  </header>
+
+  <div id="avisos"></div>
+  <section class="kpis" id="kpis" aria-label="Indicadores"></section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Seguidores ganados por tramo</h2>
+      <p class="muted">Rayado = día parcial o tramo de más de un día (ver nota).</p>
+      <div class="chart" id="g-ganados"></div>
+    </section>
+    <section class="card">
+      <h2>Gasto por tramo</h2>
+      <p class="muted">Gasto fijo proporcional a las horas reales del tramo.</p>
+      <div class="chart" id="g-gasto"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Coste por seguidor</h2>
+    <p class="muted">Gasto del tramo ÷ seguidores ganados. Sin valor en el día parcial inicial.</p>
+    <div class="chart" id="g-coste"></div>
+    <div class="tabla"><table id="t-tramos"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Streams diarios por artista</h2>
+    <p class="muted" id="streams-fuente">Leyendo la hoja en vivo…</p>
+    <div class="chart" id="g-streams"></div>
+    <div class="leyenda" id="ley-streams"></div>
+    <details><summary>Ver tabla de streams</summary><div class="tabla"><table id="t-streams"></table></div></details>
+  </section>
+
+  <footer>
+    <strong>Advertencias</strong>
+    <ul>
+      <li>El gasto es una constante de <span id="f-gasto"></span> al día: no se lee de Meta / Facebook Ads.</li>
+      <li>El coste por seguidor incluye seguidores orgánicos: no todos los “guardados” vienen de los anuncios.</li>
+      <li>Los días sin lectura no se rellenan; ganados y gasto se agrupan en el tramo que los cubre, con el gasto proporcional a sus horas reales.</li>
+      <li>Fuentes: <code>data/lecturas.csv</code> (lectura automática diaria) y la pestaña “Diario JV Navidad” de la hoja de streams, leída al abrir la página.</li>
+    </ul>
+    <p class="muted" id="generado"></p>
+  </footer>
+</main>
+
+<script type="module">
+import { parseLecturas, calcularTramos, resumen, parseStreams, r2 } from './src/calculo.mjs';
+import { GASTO_DIARIO, MONEDA, HOJA_CSV_URL } from './src/config.mjs';
+
+const $ = (id) => document.getElementById(id);
+const nf = new Intl.NumberFormat('es-ES');
+const nf2 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dinero = (x) => x == null ? '—' : `${nf2.format(x)} ${MONEDA}`;
+const fechaCorta = (d) => { const [, m, dd] = d.split('-'); return `${Number(dd)}/${Number(m)}`; };
+const fmtLeido = (iso) => iso.replace('T', ' ').slice(0, 16);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+// ---- tema ----
+const temas = ['auto', 'light', 'dark'];
+let tema = 'auto';
+try { tema = localStorage.getItem('tema') || 'auto'; } catch {}
+const aplicarTema = () => {
+  if (tema === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', tema);
+  $('tema').textContent = `Tema: ${{ auto: 'auto', light: 'claro', dark: 'oscuro' }[tema]}`;
+  try { localStorage.setItem('tema', tema); } catch {}
+  dibujar();
+};
+$('tema').onclick = () => { tema = temas[(temas.indexOf(tema) + 1) % 3]; aplicarTema(); };
+
+// ---- gráficos (SVG a mano) ----
+function tooltip(cont) {
+  let t = cont.querySelector('.tip');
+  if (!t) { t = document.createElement('div'); t.className = 'tip'; cont.appendChild(t); }
+  return {
+    show(html, x, y) {
+      t.innerHTML = html; t.style.display = 'block';
+      const w = t.offsetWidth, cw = cont.clientWidth;
+      t.style.left = `${Math.max(0, Math.min(cw - w, x - w / 2))}px`;
+      t.style.top = `${Math.max(0, y - t.offsetHeight - 10)}px`;
+    },
+    hide() { t.style.display = 'none'; },
+  };
+}
+// Escala con 4 divisiones de paso "redondo" (1, 2, 2,5, 5 × 10^n).
+const niceMax = (v) => {
+  if (v <= 0) return 1;
+  const bruto = v / 4, p = 10 ** Math.floor(Math.log10(bruto)), n = bruto / p;
+  const paso = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+  return paso * 4;
+};
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+// Barra con extremo superior redondeado (4px) anclada a la base.
+const barPath = (x, y, w, h, r = 4) => {
+  if (h <= 0) return '';
+  r = Math.min(r, w / 2, h);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+};
+
+function marco(cont, alto, max, fmtEje) {
+  cont.querySelector('svg')?.remove();
+  const W = cont.clientWidth || 320, H = alto, m = { t: 14, r: 8, b: 26, l: 44 };
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img' });
+  cont.prepend(svg);
+  const defs = el('defs', {}, svg);
+  const pat = el('pattern', { id: `rayado-${cont.id}`, width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+  el('rect', { width: 6, height: 6, fill: 'var(--surface-1)', 'fill-opacity': 0 }, pat);
+  el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: 'var(--surface-1)', 'stroke-width': 2.5 }, pat);
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const y = (v) => m.t + ih - (v / max) * ih;
+  for (let i = 0; i <= 4; i++) {
+    const v = (max / 4) * i, yy = y(v);
+    el('line', { x1: m.l, x2: W - m.r, y1: yy, y2: yy, stroke: i ? 'var(--grid)' : 'var(--axis)', 'stroke-width': 1 }, svg);
+    el('text', { x: m.l - 6, y: yy + 3.5, 'text-anchor': 'end' }, svg).textContent = fmtEje(v);
+  }
+  return { svg, W, H, m, iw, ih, y };
+}
+
+function barras(cont, items, { color, fmt, fmtEje = fmt, alto = 200 }) {
+  const max = niceMax(Math.max(...items.map((d) => d.valor ?? 0)));
+  const f = marco(cont, alto, max, fmtEje);
+  const banda = f.iw / items.length, w = Math.max(4, Math.min(36, banda * 0.62));
+  const tip = tooltip(cont);
+  const paso = Math.ceil(items.length / Math.max(1, Math.floor(f.iw / 54)));
+  items.forEach((d, i) => {
+    const cx = f.m.l + banda * i + banda / 2;
+    if (d.valor != null) {
+      const yv = f.y(d.valor);
+      el('path', { d: barPath(cx - w / 2, yv, w, f.m.t + f.ih - yv), fill: color }, f.svg);
+      if (d.rayado) el('path', { d: barPath(cx - w / 2, yv, w, f.m.t + f.ih - yv), fill: `url(#rayado-${cont.id})` }, f.svg);
+    } else {
+      el('text', { x: cx, y: f.m.t + f.ih - 4, 'text-anchor': 'middle' }, f.svg).textContent = '—';
+    }
+    if (i % paso === 0) el('text', { x: cx, y: f.H - 8, 'text-anchor': 'middle', class: 'lbl' }, f.svg).textContent = d.etiqueta;
+    const hit = el('rect', { x: f.m.l + banda * i, y: f.m.t, width: banda, height: f.ih, fill: 'transparent' }, f.svg);
+    hit.addEventListener('mouseenter', () => tip.show(d.tip, cx, d.valor != null ? f.y(d.valor) : f.m.t + f.ih));
+    hit.addEventListener('mouseleave', () => tip.hide());
+  });
+  // Etiqueta directa solo en la última barra con valor.
+  const ult = [...items].reverse().find((d) => d.valor != null);
+  if (ult) {
+    const i = items.indexOf(ult), cx = f.m.l + banda * i + banda / 2;
+    el('text', { x: cx, y: f.y(ult.valor) - 5, 'text-anchor': 'middle', class: 'lbl' }, f.svg).textContent = fmt(ult.valor);
+  }
+}
+
+function apiladas(cont, fechas, series, { alto = 240 }) {
+  const totales = fechas.map((_, i) => series.reduce((s, se) => s + (se.valores[i] ?? 0), 0));
+  const max = niceMax(Math.max(...totales));
+  const f = marco(cont, alto, max, (v) => nf.format(v));
+  const banda = f.iw / fechas.length, w = Math.max(4, Math.min(26, banda * 0.66));
+  const tip = tooltip(cont);
+  const paso = Math.ceil(fechas.length / Math.max(1, Math.floor(f.iw / 40)));
+  fechas.forEach((fe, i) => {
+    const cx = f.m.l + banda * i + banda / 2;
+    let acum = 0;
+    const visibles = series.filter((se) => (se.valores[i] ?? 0) > 0);
+    visibles.forEach((se, k) => {
+      const v = se.valores[i];
+      const y0 = f.y(acum), y1 = f.y(acum + v);
+      const arriba = k === visibles.length - 1;
+      // Separación de 2px entre segmentos: 1px arriba y 1px abajo de cada unión.
+      const yTop = y1 + (arriba ? 0 : 1), yBot = y0 - (k > 0 ? 1 : 0);
+      const h = Math.max(0, yBot - yTop);
+      if (arriba) el('path', { d: barPath(cx - w / 2, yTop, w, h), fill: se.color }, f.svg);
+      else el('rect', { x: cx - w / 2, y: yTop, width: w, height: h, fill: se.color }, f.svg);
+      acum += v;
+    });
+    if (i % paso === 0) el('text', { x: cx, y: f.H - 8, 'text-anchor': 'middle', class: 'lbl' }, f.svg).textContent = fechaCorta(fe);
+    const hit = el('rect', { x: f.m.l + banda * i, y: f.m.t, width: banda, height: f.ih, fill: 'transparent' }, f.svg);
+    const filas = series.map((se) => `<span style="color:${se.color}">■</span> ${esc(se.nombre)}: <b>${se.valores[i] == null ? '—' : nf.format(se.valores[i])}</b>`).join('<br>');
+    hit.addEventListener('mouseenter', () => tip.show(`<b>${fe}</b><br>${filas}<br>Total (hoja): <b>${nf.format(series.totalHoja[i] ?? 0)}</b>`, cx, f.y(totales[i])));
+    hit.addEventListener('mouseleave', () => tip.hide());
+  });
+}
+
+// ---- datos ----
+let estado = null;
+
+async function cargar() {
+  const avisos = [];
+  let lecturas, tramos, res;
+  try {
+    const r = await fetch(`data/lecturas.csv?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    lecturas = parseLecturas(await r.text());
+    tramos = calcularTramos(lecturas, GASTO_DIARIO);
+    res = resumen(lecturas, tramos);
+  } catch (e) {
+    $('avisos').innerHTML = `<p class="aviso critico"><strong>No se pudo leer data/lecturas.csv:</strong> ${esc(e.message)}</p>`;
+    return;
+  }
+  const horasDesde = (Date.now() - res.ultima_ms) / 3600000;
+  if (horasDesde > 48)
+    avisos.push(`<p class="aviso critico"><strong>⚠ Datos desactualizados:</strong> la última lectura es de hace ${Math.floor(horasDesde)} h (${esc(fmtLeido(res.ultima_lectura))}). Revisa el workflow “Lectura diaria” en GitHub Actions.</p>`);
+
+  let streams = null, errStreams = null;
+  try {
+    const r = await fetch(HOJA_CSV_URL, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const txt = await r.text();
+    if (/^\s*</.test(txt)) throw new Error('la hoja devolvió HTML en vez de CSV (¿ya no es accesible con el enlace?)');
+    streams = parseStreams(txt);
+  } catch (e) { errStreams = e.message; }
+
+  estado = { lecturas, tramos, res, streams, errStreams, avisos, leidoA: new Date() };
+  dibujar();
+}
+
+function dibujar() {
+  if (!estado) return;
+  const { tramos, res, streams, errStreams, avisos, leidoA } = estado;
+  const css = getComputedStyle(document.documentElement);
+  const col = (n) => css.getPropertyValue(n).trim();
+
+  // Streams: comprobar que la suma por artista coincide con la columna Total de la hoja.
+  const avisosStreams = [];
+  let artistas = [], porFecha = new Map();
+  if (streams) {
+    artistas = streams.columnas.filter((c) => !['Fecha', 'Total', 'Acumulado'].includes(c));
+    for (const f of streams.filas) {
+      porFecha.set(f.Fecha, f);
+      const suma = artistas.reduce((s, a) => s + (f[a] ?? 0), 0);
+      if (f.Total != null && suma !== f.Total) avisosStreams.push(`${f.Fecha}: suma por artista ${suma} ≠ Total ${f.Total}`);
+    }
+  }
+  $('avisos').innerHTML = avisos.join('') +
+    (errStreams ? `<p class="aviso"><strong>No se pudo leer la hoja de streams:</strong> ${esc(errStreams)}. No se muestran streams.</p>` : '') +
+    (avisosStreams.length ? `<p class="aviso"><strong>Incoherencias en la hoja:</strong> ${esc(avisosStreams.join(' · '))}</p>` : '');
+
+  // KPIs
+  $('kpis').innerHTML = [
+    ['Seguidores actuales', nf.format(res.actuales), `Lectura: ${fmtLeido(res.ultima_lectura)}`],
+    ['Ganados en total', `+${nf.format(res.ganados_total)}`, `Desde la lectura inicial (${fmtLeido(estado.lecturas[0].leido_el)})`],
+    ['Gasto total', dinero(res.gasto_total), `${GASTO_DIARIO} ${MONEDA}/día × días cubiertos`],
+    ['Coste medio por seguidor', dinero(res.coste_medio), `${dinero(res.gasto_completos)} ÷ ${res.ganados_completos} (sin el día parcial)`],
+  ].map(([et, v, d]) => `<div class="kpi"><div class="et">${et}</div><div class="v">${v}</div><div class="d">${esc(d)}</div></div>`).join('');
+
+  const etiqueta = (t) => {
+    if (t.dias.length === 1) return fechaCorta(t.dia);
+    const [a, b] = [t.dias[0], t.dias.at(-1)];
+    return a.slice(5, 7) === b.slice(5, 7) ? `${Number(a.slice(8))}–${fechaCorta(b)}` : `${fechaCorta(a)}–${fechaCorta(b)}`;
+  };
+  const tipTramo = (t, extra) => `<b>${t.dias.length > 1 ? `${t.dias[0]} a ${t.dias.at(-1)}` : t.dia}</b><br>${extra}` +
+    `<br>${t.horas.toFixed(1).replace('.', ',')} h · ${nf2.format(t.n_dias)} días` + (t.nota ? `<br><i>${esc(t.nota)}</i>` : '');
+  const rayado = (t) => t.parcial || t.dias.length > 1;
+
+  barras($('g-ganados'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.ganados, rayado: rayado(t),
+    tip: tipTramo(t, `Ganados: <b>+${nf.format(t.ganados)}</b> (${nf.format(t.guardados)} total)`) })),
+    { color: col('--s1'), fmt: (v) => nf.format(v) });
+  barras($('g-gasto'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.gasto, rayado: rayado(t),
+    tip: tipTramo(t, `Gasto: <b>${dinero(t.gasto)}</b>`) })),
+    { color: col('--s2'), fmt: (v) => dinero(v), fmtEje: (v) => nf.format(r2(v)) });
+  barras($('g-coste'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.coste_por_guardado, rayado: rayado(t),
+    tip: tipTramo(t, `Coste por seguidor: <b>${dinero(t.coste_por_guardado)}</b>`) })),
+    { color: col('--s7'), fmt: (v) => dinero(v), fmtEje: (v) => nf2.format(v), alto: 180 });
+
+  // Tabla de tramos, con streams de los días cubiertos (solo si la hoja tiene todos esos días).
+  const streamsTramo = (t) => {
+    if (!streams) return '—';
+    const faltan = t.dias.filter((d) => porFecha.get(d)?.Total == null);
+    if (faltan.length) return `<span class="muted">falta ${faltan.map(fechaCorta).join(', ')}</span>`;
+    return nf.format(t.dias.reduce((s, d) => s + porFecha.get(d).Total, 0));
+  };
+  $('t-tramos').innerHTML = `<thead><tr><th>Días</th><th>Leído el</th><th>Horas</th><th>Seguidores</th><th>Ganados</th><th>Gasto</th><th>Coste/seg.</th><th>Streams</th><th class="izq">Nota</th></tr></thead><tbody>` +
+    tramos.map((t) => `<tr><td>${t.dias.length > 1 ? `${t.dias[0]} a ${t.dias.at(-1)}` : t.dia}</td><td>${esc(fmtLeido(t.hasta))}</td>` +
+      `<td>${t.horas.toFixed(1).replace('.', ',')}</td><td>${nf.format(t.guardados)}</td><td>+${nf.format(t.ganados)}</td>` +
+      `<td>${dinero(t.gasto)}</td><td>${dinero(t.coste_por_guardado)}</td><td>${streamsTramo(t)}</td><td class="nota">${esc(t.nota)}</td></tr>`).join('') + '</tbody>';
+
+  // Streams
+  if (streams) {
+    const colores = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7'].map(col);
+    const fechas = streams.filas.map((f) => f.Fecha);
+    const series = artistas.map((a, i) => ({ nombre: a, color: colores[i % colores.length], valores: streams.filas.map((f) => f[a]) }));
+    series.totalHoja = streams.filas.map((f) => f.Total);
+    apiladas($('g-streams'), fechas, series, {});
+    $('ley-streams').innerHTML = series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.nombre)}</span>`).join('');
+    $('streams-fuente').textContent = `Leído en vivo de la pestaña “Diario JV Navidad” a las ${leidoA.toLocaleTimeString('es-ES', { timeZone: 'Europe/Tallinn' })} (Tallin) · ${fechas.length} días (${fechas[0]} a ${fechas.at(-1)}).`;
+    $('t-streams').innerHTML = `<thead><tr>${streams.columnas.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>` +
+      streams.filas.map((f) => `<tr>${streams.columnas.map((c) => `<td>${c === 'Fecha' ? f[c] : f[c] == null ? '—' : nf.format(f[c])}</td>`).join('')}</tr>`).join('') + '</tbody>';
+  } else {
+    $('streams-fuente').innerHTML = `<span class="err">Sin datos de streams: ${esc(errStreams || '')}</span>`;
+  }
+
+  $('f-gasto').textContent = `${GASTO_DIARIO} ${MONEDA}`;
+  $('generado').textContent = `Página calculada en tu navegador el ${leidoA.toLocaleString('es-ES', { timeZone: 'Europe/Tallinn' })} (Tallin).`;
+}
+
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(dibujar, 120); });
+aplicarTema();
+cargar();
+</script>
+</body>
+</html>

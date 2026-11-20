@@ -1,0 +1,41 @@
+# Lectura diaria de "guardada N veces" a las 11:53 de Tallin. Si falla, el run queda en rojo
+# (GitHub envía el aviso de fallo por correo a quien creó/modificó el cron).
+name: Lectura diaria
+on:
+  schedule:
+    - cron: '53 11 * * *'
+      timezone: 'Europe/Tallinn'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lectura-diaria
+  cancel-in-progress: false
+jobs:
+  leer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps --only-shell chromium
+      - name: Leer y añadir fila
+        run: node scripts/leer.mjs --tipo diaria --evidencia evidencia-run
+      - name: Commit del CSV
+        run: |
+          if git diff --quiet -- data/lecturas.csv; then echo "Sin cambios en el CSV"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/lecturas.csv
+          git commit -m "Lectura diaria $(tail -1 data/lecturas.csv | cut -d, -f1)"
+          git push
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidencia-lectura
+          path: evidencia-run/
+          retention-days: 30
