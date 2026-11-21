@@ -2,9 +2,14 @@
 # (GitHub envía el aviso de fallo por correo a quien creó/modificó el cron).
 name: Lectura diaria
 on:
+  # Principal 11:53 Tallin + dos respaldos (el lector no duplica: si el día ya existe, no añade fila).
+  # El de UTC no usa `timezone`: 10:23 UTC = 12:23 Tallin en invierno (UTC+2), 13:23 en verano (UTC+3).
   schedule:
     - cron: '53 11 * * *'
       timezone: 'Europe/Tallinn'
+    - cron: '23 12 * * *'
+      timezone: 'Europe/Tallinn'
+    - cron: '23 10 * * *'
   workflow_dispatch:
 permissions:
   contents: write
