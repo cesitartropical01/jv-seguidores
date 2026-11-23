@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { parseLecturas, calcularTramos, resumen, parseStreams } from '../src/calculo.mjs';
 import { diaDeLectura } from '../scripts/leer.mjs';
 
-const semilla = parseLecturas(readFileSync(new URL('../data/lecturas.csv', import.meta.url), 'utf8'));
+// Copia fija de la semilla del encargo: los tests no dependen de las lecturas que se van añadiendo.
+const semilla = parseLecturas(readFileSync(new URL('./semilla.csv', import.meta.url), 'utf8'));
 const tramos = calcularTramos(semilla, 5);
 
 test('la semilla tiene 8 lecturas y 7 tramos', () => {
@@ -68,4 +69,12 @@ test('parseStreams lee la cabecera de la pestaña', () => {
   const s = parseStreams('"Fecha","Ruby Candle","Total"\n"2026-11-18","21","67"\n');
   assert.deepEqual(s.columnas, ['Fecha', 'Ruby Candle', 'Total']);
   assert.deepEqual(s.filas, [{ Fecha: '2026-11-18', 'Ruby Candle': 21, Total: 67 }]);
+});
+
+test('el CSV real es válido: formato correcto, una fila por día, orden cronológico', () => {
+  const reales = parseLecturas(readFileSync(new URL('../data/lecturas.csv', import.meta.url), 'utf8'));
+  const dias = reales.filter((l) => l.dia).map((l) => l.dia);
+  assert.equal(new Set(dias).size, dias.length, 'hay días repetidos');
+  for (let i = 1; i < reales.length; i++) assert.ok(reales[i].ms > reales[i - 1].ms, `fila ${i + 2} fuera de orden`);
+  for (const l of reales.filter((x) => x.dia)) assert.equal(diaDeLectura(l.leido_el), l.dia, `dia incoherente en ${l.leido_el}`);
 });
