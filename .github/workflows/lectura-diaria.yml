@@ -11,6 +11,9 @@ on:
       timezone: 'Europe/Tallinn'
     - cron: '23 10 * * *'
   workflow_dispatch:
+  # Disparo puntual: la rutina en la nube de Claude sube un commit vacío a esta rama a las 11:53.
+  push:
+    branches: ['disparo-lectura']
 permissions:
   contents: write
 concurrency:
@@ -22,6 +25,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # siempre se lee y escribe sobre main, también si lo dispara la rama disparo-lectura
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -37,7 +42,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/lecturas.csv
           git commit -m "Lectura diaria $(tail -1 data/lecturas.csv | cut -d, -f1)"
-          git push
+          git push origin HEAD:main
       - uses: actions/upload-artifact@v4
         if: always()
         with:
