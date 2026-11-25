@@ -326,8 +326,10 @@ function dibujar() {
     const [a, b] = [t.dias[0], t.dias.at(-1)];
     return a.slice(5, 7) === b.slice(5, 7) ? `${Number(a.slice(8))}–${fechaCorta(b)}` : `${fechaCorta(a)}–${fechaCorta(b)}`;
   };
+  // Sin las horas cubiertas: el cálculo las usa, pero no se muestran.
+  const notaVisible = (t) => t.nota.split('; ').filter((n) => !n.startsWith('cubre ')).join('; ');
   const tipTramo = (t, extra) => `<b>${t.dias.length > 1 ? `${t.dias[0]} a ${t.dias.at(-1)}` : t.dia}</b><br>${extra}` +
-    `<br>${t.horas.toFixed(1).replace('.', ',')} h · ${nf2.format(t.n_dias)} días` + (t.nota ? `<br><i>${esc(t.nota)}</i>` : '');
+    (notaVisible(t) ? `<br><i>${esc(notaVisible(t))}</i>` : '');
   const rayado = (t) => t.parcial || t.dias.length > 1;
 
   barras($('g-ganados'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.ganados, rayado: rayado(t),
@@ -347,10 +349,10 @@ function dibujar() {
     if (faltan.length) return `<span class="muted">falta ${faltan.map(fechaCorta).join(', ')}</span>`;
     return nf.format(t.dias.reduce((s, d) => s + porFecha.get(d).Total, 0));
   };
-  $('t-tramos').innerHTML = `<thead><tr><th>Días</th><th>Leído el</th><th>Horas</th><th>Seguidores</th><th>Ganados</th><th>Gasto</th><th>Coste/seg.</th><th>Streams</th><th class="izq">Nota</th></tr></thead><tbody>` +
+  $('t-tramos').innerHTML = `<thead><tr><th>Días</th><th>Leído el</th><th>Seguidores</th><th>Ganados</th><th>Gasto</th><th>Coste/seg.</th><th>Streams</th><th class="izq">Nota</th></tr></thead><tbody>` +
     tramos.map((t) => `<tr><td>${t.dias.length > 1 ? `${t.dias[0]} a ${t.dias.at(-1)}` : t.dia}</td><td>${esc(fmtLeido(t.hasta))}</td>` +
-      `<td>${t.horas.toFixed(1).replace('.', ',')}</td><td>${nf.format(t.guardados)}</td><td>+${nf.format(t.ganados)}</td>` +
-      `<td>${dinero(t.gasto)}</td><td>${dinero(t.coste_por_guardado)}</td><td>${streamsTramo(t)}</td><td class="nota">${esc(t.nota)}</td></tr>`).join('') + '</tbody>';
+      `<td>${nf.format(t.guardados)}</td><td>+${nf.format(t.ganados)}</td>` +
+      `<td>${dinero(t.gasto)}</td><td>${dinero(t.coste_por_guardado)}</td><td>${streamsTramo(t)}</td><td class="nota">${esc(notaVisible(t))}</td></tr>`).join('') + '</tbody>';
 
   // Streams
   if (streams) {
