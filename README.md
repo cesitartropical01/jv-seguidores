@@ -30,3 +30,6 @@ los cruza con un gasto fijo (`src/config.mjs`) y con los streams de la hoja de G
 - Nunca se escribe una fila vacía, estimada o interpolada. Si la lectura falla, el run termina en rojo.
 - Una fila por `dia`. `dia` = día natural anterior a la fecha local (Tallin) de `leido_el`.
 - Si la cifra es < la mitad o > el doble de la última lectura, no se escribe.
+- El dashboard muestra días naturales enteros (00:00–24:00 Tallin). Entre dos lecturas reales se supone
+  ritmo constante (media) y se reparte en proporción al tiempo; esos días van marcados con ≈ y rayado.
+  El CSV solo guarda lecturas reales; el reparto se calcula al mostrar la página.

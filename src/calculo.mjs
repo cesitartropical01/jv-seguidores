@@ -79,6 +79,66 @@ export function calcularTramos(lecturas, gastoDiario) {
 
 export const fmtHoras = (h) => `${h.toFixed(1).replace('.', ',')} h`;
 
+export const r1 = (x) => Math.round((x + Number.EPSILON) * 10) / 10;
+
+// Desfase (ms) de una zona horaria en un instante dado, vía Intl (funciona en Node y navegador).
+function desfaseMs(zona, ms) {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: zona, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]),
+  );
+  return Date.UTC(+p.year, p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000;
+}
+
+// Instante (ms) de las 00:00 locales de `fecha` (YYYY-MM-DD) en `zona`.
+export function medianoche(fecha, zona) {
+  const utc = Date.parse(`${fecha}T00:00:00Z`);
+  return utc - desfaseMs(zona, utc - desfaseMs(zona, utc));
+}
+
+// Días naturales enteros (00:00–24:00 en `zona`). Entre dos lecturas reales se supone ritmo
+// constante (media), así que la cifra a medianoche se reparte en proporción al tiempo.
+// Solo se calculan días cuyo final ya está cubierto por una lectura real (nunca se extrapola).
+export function calcularDias(lecturas, gastoDiario, zona) {
+  const ord = [...lecturas].sort((a, b) => a.ms - b.ms);
+  const primera = ord[0], ultima = ord.at(-1);
+  const MARGEN = 30 * 60000; // a menos de 30 min de una lectura real se considera lectura directa
+  const valorEn = (t) => {
+    const i = ord.findIndex((l) => l.ms >= t);
+    const b = ord[i];
+    if (b.ms === t || i === 0) return { v: b.guardados, a: b, b };
+    const a = ord[i - 1];
+    return { v: a.guardados + ((b.guardados - a.guardados) * (t - a.ms)) / (b.ms - a.ms), a, b };
+  };
+  const cerca = (p, t) => Math.min(Math.abs(p.a.ms - t), Math.abs(p.b.ms - t)) <= MARGEN;
+  const dias = [];
+  for (let d = primera.leido_el.slice(0, 10); ; d = sumarDias(d, 1)) {
+    const fin = medianoche(sumarDias(d, 1), zona);
+    if (fin > ultima.ms) break;
+    const parcial = medianoche(d, zona) < primera.ms;
+    const ini = parcial ? primera.ms : medianoche(d, zona);
+    const A = valorEn(ini), B = valorEn(fin);
+    const ganados = B.v - A.v;
+    const media = !(cerca(A, ini) && cerca(B, fin));
+    // Lecturas reales en las que se apoya el día (la cercana si está a menos de 30 min).
+    const desde = Math.abs(A.b.ms - ini) <= MARGEN ? A.b : A.a;
+    const hasta = Math.abs(B.a.ms - fin) <= MARGEN ? B.a : B.b;
+    const corta = (iso) => `${+iso.slice(8, 10)}/${+iso.slice(5, 7)} ${iso.slice(11, 16)}`;
+    const nota = parcial
+      ? 'día parcial: desde la lectura inicial'
+      : media ? `media entre lecturas ${corta(desde.leido_el)} y ${corta(hasta.leido_el)}` : '';
+    dias.push({
+      dia: d, parcial, media,
+      guardados_fin: r1(B.v), ganados: r1(ganados), gasto: gastoDiario,
+      coste_por_guardado: !parcial && ganados > 0 ? r2(gastoDiario / ganados) : null,
+      desde: desde.leido_el, hasta: hasta.leido_el, nota,
+    });
+  }
+  return dias;
+}
+
 export function resumen(lecturas, tramos) {
   const ord = [...lecturas].sort((a, b) => a.ms - b.ms);
   const ultima = ord[ord.length - 1];

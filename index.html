@@ -105,22 +105,21 @@ footer li { margin: 4px 0; }
 
   <div class="grid2">
     <section class="card">
-      <h2>Seguidores ganados por tramo</h2>
-      <p class="muted">Rayado = día parcial o tramo de más de un día (ver nota).</p>
+      <h2>Seguidores ganados por día</h2>
+      <p class="muted">Día natural entero (00:00–24:00, Tallin). Rayado = media entre lecturas o día parcial (ver nota).</p>
       <div class="chart" id="g-ganados"></div>
     </section>
     <section class="card">
-      <h2>Gasto por tramo</h2>
-      <p class="muted">Gasto fijo proporcional a las horas reales del tramo.</p>
-      <div class="chart" id="g-gasto"></div>
+      <h2>Coste por seguidor por día</h2>
+      <p class="muted" id="sub-coste">Gasto del día ÷ seguidores ganados ese día. Sin valor en el día parcial inicial.</p>
+      <div class="chart" id="g-coste"></div>
     </section>
   </div>
 
   <section class="card">
-    <h2>Coste por seguidor</h2>
-    <p class="muted">Gasto del tramo ÷ seguidores ganados. Sin valor en el día parcial inicial.</p>
-    <div class="chart" id="g-coste"></div>
-    <div class="tabla"><table id="t-tramos"></table></div>
+    <h2>Detalle por día</h2>
+    <p class="muted">Entre dos lecturas reales se supone ritmo constante: lo ganado se reparte en proporción al tiempo y la cifra a medianoche sale de esa media. Solo se muestran días cuya medianoche final ya está cubierta por una lectura real.</p>
+    <div class="tabla"><table id="t-dias"></table></div>
   </section>
 
   <section class="card">
@@ -137,12 +136,13 @@ footer li { margin: 4px 0; }
 </main>
 
 <script type="module">
-import { parseLecturas, calcularTramos, resumen, parseStreams, r2 } from './src/calculo.mjs';
-import { GASTO_DIARIO, MONEDA, HOJA_CSV_URL } from './src/config.mjs';
+import { parseLecturas, calcularTramos, calcularDias, resumen, parseStreams } from './src/calculo.mjs';
+import { GASTO_DIARIO, MONEDA, HOJA_CSV_URL, ZONA } from './src/config.mjs';
 
 const $ = (id) => document.getElementById(id);
 const nf = new Intl.NumberFormat('es-ES');
 const nf2 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nf1 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
 const dinero = (x) => x == null ? '—' : `${nf2.format(x)} ${MONEDA}`;
 const fechaCorta = (d) => { const [, m, dd] = d.split('-'); return `${Number(dd)}/${Number(m)}`; };
 const fmtLeido = (iso) => iso.replace('T', ' ').slice(0, 16);
@@ -282,12 +282,13 @@ let estado = null;
 
 async function cargar() {
   const avisos = [];
-  let lecturas, tramos, res;
+  let lecturas, tramos, dias, res;
   try {
     const r = await fetch(`data/lecturas.csv?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     lecturas = parseLecturas(await r.text());
     tramos = calcularTramos(lecturas, GASTO_DIARIO);
+    dias = calcularDias(lecturas, GASTO_DIARIO, ZONA);
     res = resumen(lecturas, tramos);
   } catch (e) {
     $('avisos').innerHTML = `<p class="aviso critico"><strong>No se pudo leer data/lecturas.csv:</strong> ${esc(e.message)}</p>`;
@@ -306,13 +307,13 @@ async function cargar() {
     streams = parseStreams(txt);
   } catch (e) { errStreams = e.message; }
 
-  estado = { lecturas, tramos, res, streams, errStreams, avisos, leidoA: new Date() };
+  estado = { lecturas, tramos, dias, res, streams, errStreams, avisos, leidoA: new Date() };
   dibujar();
 }
 
 function dibujar() {
   if (!estado) return;
-  const { tramos, res, streams, errStreams, avisos, leidoA } = estado;
+  const { dias, res, streams, errStreams, avisos, leidoA } = estado;
   const css = getComputedStyle(document.documentElement);
   const col = (n) => css.getPropertyValue(n).trim();
 
@@ -339,38 +340,27 @@ function dibujar() {
     ['Coste medio por seguidor', dinero(res.coste_medio), `${dinero(res.gasto_completos)} ÷ ${res.ganados_completos} (sin el día parcial)`],
   ].map(([et, v, d]) => `<div class="kpi"><div class="et">${et}</div><div class="v">${v}</div><div class="d">${esc(d)}</div></div>`).join('');
 
-  const etiqueta = (t) => {
-    if (t.dias.length === 1) return fechaCorta(t.dia);
-    const [a, b] = [t.dias[0], t.dias.at(-1)];
-    return a.slice(5, 7) === b.slice(5, 7) ? `${Number(a.slice(8))}–${fechaCorta(b)}` : `${fechaCorta(a)}–${fechaCorta(b)}`;
-  };
-  // Sin las horas cubiertas: el cálculo las usa, pero no se muestran.
-  const notaVisible = (t) => t.nota.split('; ').filter((n) => !n.startsWith('cubre ')).join('; ');
-  const tipTramo = (t, extra) => `<b>${t.dias.length > 1 ? `${t.dias[0]} a ${t.dias.at(-1)}` : t.dia}</b><br>${extra}` +
-    (notaVisible(t) ? `<br><i>${esc(notaVisible(t))}</i>` : '');
-  const rayado = (t) => t.parcial || t.dias.length > 1;
+  const tipDia = (d, extra) => `<b>${d.dia}</b><br>${extra}` + (d.nota ? `<br><i>${esc(d.nota)}</i>` : '');
+  const rayado = (d) => d.parcial || d.media;
+  const signo = (d) => `${d.media ? '≈ ' : ''}+${nf1.format(d.ganados)}`;
 
-  barras($('g-ganados'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.ganados, rayado: rayado(t),
-    tip: tipTramo(t, `Ganados: <b>+${nf.format(t.ganados)}</b> (${nf.format(t.guardados)} total)`) })),
-    { color: col('--s1'), fmt: (v) => nf.format(v) });
-  barras($('g-gasto'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.gasto, rayado: rayado(t),
-    tip: tipTramo(t, `Gasto: <b>${dinero(t.gasto)}</b>`) })),
-    { color: col('--s2'), fmt: (v) => dinero(v), fmtEje: (v) => nf.format(r2(v)) });
-  barras($('g-coste'), tramos.map((t) => ({ etiqueta: etiqueta(t), valor: t.coste_por_guardado, rayado: rayado(t),
-    tip: tipTramo(t, `Coste por seguidor: <b>${dinero(t.coste_por_guardado)}</b>`) })),
-    { color: col('--s7'), fmt: (v) => dinero(v), fmtEje: (v) => nf2.format(v), alto: 180 });
+  barras($('g-ganados'), dias.map((d) => ({ etiqueta: fechaCorta(d.dia), valor: d.ganados, rayado: rayado(d),
+    tip: tipDia(d, `Ganados: <b>${signo(d)}</b> (${d.media ? '≈ ' : ''}${nf1.format(d.guardados_fin)} a las 24:00)`) })),
+    { color: col('--s1'), fmt: (v) => nf1.format(v) });
+  barras($('g-coste'), dias.map((d) => ({ etiqueta: fechaCorta(d.dia), valor: d.coste_por_guardado, rayado: rayado(d),
+    tip: tipDia(d, `Gasto: <b>${dinero(d.gasto)}</b><br>Coste por seguidor: <b>${d.media && d.coste_por_guardado != null ? '≈ ' : ''}${dinero(d.coste_por_guardado)}</b>`) })),
+    { color: col('--s7'), fmt: (v) => dinero(v), fmtEje: (v) => nf2.format(v) });
+  $('sub-coste').textContent = `Gasto del día (${GASTO_DIARIO} ${MONEDA}) ÷ seguidores ganados ese día. Sin valor en el día parcial inicial.`;
 
-  // Tabla de tramos, con streams de los días cubiertos (solo si la hoja tiene todos esos días).
-  const streamsTramo = (t) => {
+  // Tabla por día, con los streams de ese día de la hoja.
+  const streamsDia = (d) => {
     if (!streams) return '—';
-    const faltan = t.dias.filter((d) => porFecha.get(d)?.Total == null);
-    if (faltan.length) return `<span class="muted">falta ${faltan.map(fechaCorta).join(', ')}</span>`;
-    return nf.format(t.dias.reduce((s, d) => s + porFecha.get(d).Total, 0));
+    const t = porFecha.get(d.dia)?.Total;
+    return t == null ? '<span class="muted">sin dato</span>' : nf.format(t);
   };
-  $('t-tramos').innerHTML = `<thead><tr><th>Días</th><th>Leído el</th><th>Seguidores</th><th>Ganados</th><th>Gasto</th><th>Coste/seg.</th><th>Streams</th><th class="izq">Nota</th></tr></thead><tbody>` +
-    tramos.map((t) => `<tr><td>${t.dias.length > 1 ? `${t.dias[0]} a ${t.dias.at(-1)}` : t.dia}</td><td>${esc(fmtLeido(t.hasta))}</td>` +
-      `<td>${nf.format(t.guardados)}</td><td>+${nf.format(t.ganados)}</td>` +
-      `<td>${dinero(t.gasto)}</td><td>${dinero(t.coste_por_guardado)}</td><td>${streamsTramo(t)}</td><td class="nota">${esc(notaVisible(t))}</td></tr>`).join('') + '</tbody>';
+  $('t-dias').innerHTML = `<thead><tr><th>Día</th><th>Seguidores a las 24:00</th><th>Ganados</th><th>Gasto</th><th>Coste/seg.</th><th>Streams</th><th class="izq">Nota</th></tr></thead><tbody>` +
+    dias.map((d) => `<tr><td>${d.dia}</td><td>${d.media ? '≈ ' : ''}${nf1.format(d.guardados_fin)}</td><td>${signo(d)}</td>` +
+      `<td>${dinero(d.gasto)}</td><td>${d.media && d.coste_por_guardado != null ? '≈ ' : ''}${dinero(d.coste_por_guardado)}</td><td>${streamsDia(d)}</td><td class="nota">${esc(d.nota)}</td></tr>`).join('') + '</tbody>';
 
   // Streams
   if (streams) {

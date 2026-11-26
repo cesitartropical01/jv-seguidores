@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseLecturas, calcularTramos, resumen, parseStreams } from '../src/calculo.mjs';
+import { parseLecturas, calcularTramos, resumen, parseStreams, calcularDias, medianoche } from '../src/calculo.mjs';
 import { diaDeLectura } from '../scripts/leer.mjs';
 
 // Copia fija de la semilla del encargo: los tests no dependen de las lecturas que se van añadiendo.
@@ -77,4 +77,33 @@ test('el CSV real es válido: formato correcto, una fila por día, orden cronol�
   assert.equal(new Set(dias).size, dias.length, 'hay días repetidos');
   for (let i = 1; i < reales.length; i++) assert.ok(reales[i].ms > reales[i - 1].ms, `fila ${i + 2} fuera de orden`);
   for (const l of reales.filter((x) => x.dia)) assert.equal(diaDeLectura(l.leido_el), l.dia, `dia incoherente en ${l.leido_el}`);
+});
+
+test('medianoche local de Tallin (invierno +02:00, verano +03:00)', () => {
+  assert.equal(medianoche('2026-11-20', 'Europe/Tallinn'), Date.parse('2026-11-20T00:00:00+02:00'));
+  assert.equal(medianoche('2026-07-01', 'Europe/Tallinn'), Date.parse('2026-07-01T00:00:00+03:00'));
+});
+
+test('días enteros: reparto a ritmo medio entre lecturas, sin extrapolar', () => {
+  const dias = calcularDias(semilla, 5, 'Europe/Tallinn');
+  // Del 10 al 19: el 20 no se calcula porque no hay lectura posterior a su medianoche final.
+  assert.deepEqual(dias.map((d) => d.dia), ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14',
+    '2026-11-15', '2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19']);
+  // Día parcial inicial: sin coste.
+  assert.equal(dias[0].parcial, true);
+  assert.equal(dias[0].coste_por_guardado, null);
+  // Todos los días cuestan el gasto diario completo.
+  for (const d of dias) assert.equal(d.gasto, 5);
+  // Días con lecturas a pocos minutos de la medianoche: directos, sin nota de media.
+  assert.equal(dias[2].media, false);
+  assert.equal(dias[2].ganados, 6);
+  // 14 y 15: hueco de 48 h (14T00:12:26 → 16T00:11:04, +13) repartido a ritmo constante.
+  const ritmo = 13 / (Date.parse('2026-11-16T00:11:04+02:00') - Date.parse('2026-11-14T00:12:26+02:00'));
+  const d15 = dias.find((d) => d.dia === '2026-11-15');
+  assert.equal(d15.media, true);
+  assert.equal(d15.ganados, Math.round(ritmo * 86400000 * 10) / 10);
+  assert.match(d15.nota, /media entre lecturas 14\/11 00:12 y 16\/11 00:11/);
+  // La suma de los días cuadra con la cifra a la última medianoche (sin redondeos acumulados de más de 0,5).
+  const suma = dias.reduce((s, d) => s + d.ganados, 0);
+  assert.ok(Math.abs(suma - (dias.at(-1).guardados_fin - 404)) < 0.5);
 });
