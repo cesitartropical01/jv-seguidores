@@ -5,52 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seguidores Jingle Vibes</title>
 <meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Branding de TickOS / Mediaticks: rojo #F92342, azul #3433D0, noche #101C4E, gris #F3F3F3, Open Sans. */
 :root {
   color-scheme: light;
-  --bg: #f4f3f0; --surface-1: #fcfcfb; --border: #e4e2dc;
-  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #77756f;
-  --grid: #e8e6e1; --axis: #b9b7b0;
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6;
-  --warn-bg: #fff4dc; --warn-border: #fab219; --crit-bg: #fde8e8; --crit-border: #d03b3b;
+  --bg: #f3f3f3; --surface-1: #ffffff; --border: #e2e5ee;
+  --text-primary: #101c4e; --text-secondary: #4b5577; --text-muted: #6b7491;
+  --grid: #eceef4; --axis: #c3c8d6; --accent: #3433d0; --shadow: 0 2px 10px rgb(16 28 78 / .08);
+  --s1: #3433d0; --s2: #f92342; --s3: #1b9e5a; --s4: #e9a100; --s5: #c13584; --s6: #0e7490; --s7: #101c4e;
+  --warn-bg: #fff8e1; --warn-border: #e9a100; --crit-bg: #ffe9ec; --crit-border: #f92342;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #111110; --surface-1: #1a1a19; --border: #2e2e2b;
-    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #96958c;
-    --grid: #2a2a27; --axis: #4a4a45;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9;
-    --warn-bg: #3a2e10; --warn-border: #fab219; --crit-bg: #3a1a1a; --crit-border: #d03b3b;
+    --bg: #0a1030; --surface-1: #111a45; --border: #232d5c;
+    --text-primary: #f3f3f3; --text-secondary: #c9cee3; --text-muted: #a6adca;
+    --grid: #1b2559; --axis: #2b3667; --accent: #6463ee; --shadow: none;
+    --s1: #6463ee; --s2: #ff4a63; --s3: #2fc27f; --s4: #f2b630; --s5: #e46aa8; --s6: #22a6c4; --s7: #9d9cf5;
+    --warn-bg: #3a2e10; --warn-border: #f2b630; --crit-bg: #3d1424; --crit-border: #ff4a63;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #111110; --surface-1: #1a1a19; --border: #2e2e2b;
-  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #96958c;
-  --grid: #2a2a27; --axis: #4a4a45;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9;
-  --warn-bg: #3a2e10; --warn-border: #fab219; --crit-bg: #3a1a1a; --crit-border: #d03b3b;
+  --bg: #0a1030; --surface-1: #111a45; --border: #232d5c;
+  --text-primary: #f3f3f3; --text-secondary: #c9cee3; --text-muted: #a6adca;
+  --grid: #1b2559; --axis: #2b3667; --accent: #6463ee; --shadow: none;
+  --s1: #6463ee; --s2: #ff4a63; --s3: #2fc27f; --s4: #f2b630; --s5: #e46aa8; --s6: #22a6c4; --s7: #9d9cf5;
+  --warn-bg: #3a2e10; --warn-border: #f2b630; --crit-bg: #3d1424; --crit-border: #ff4a63;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text-primary);
-  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+  font: 14px/1.5 "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 24px 18px 48px; }
+.marca { display: flex; align-items: center; gap: 12px; }
+.marca .logo { width: 40px; height: 40px; border-radius: 10px; flex: none; display: grid; place-items: center;
+  background: linear-gradient(135deg, #f92342, #3433d0); color: #fff; font-weight: 800; font-size: 18px; }
 header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
-h1 { font-size: 22px; margin: 0 0 4px; }
-h2 { font-size: 17px; margin: 0 0 4px; }
+h1 { font-size: 21px; font-weight: 800; margin: 0 0 2px; letter-spacing: -.01em; }
+h2 { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
 .sub { color: var(--text-secondary); margin: 0; font-size: 14px; }
 .muted { color: var(--text-muted); font-size: 13px; }
 button.tema { background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
-  border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.embebido button.tema { display: none; }
 .aviso { border-left: 4px solid var(--warn-border); background: var(--warn-bg); padding: 10px 14px; border-radius: 6px; margin: 16px 0 0; }
 .aviso.critico { border-color: var(--crit-border); background: var(--crit-bg); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0; }
-.kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
-.kpi .et { color: var(--text-secondary); font-size: 13px; }
-.kpi .v { font-size: 30px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 4px; }
+.kpi { position: relative; overflow: hidden; background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 16px 14px; box-shadow: var(--shadow); }
+.kpi::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(115deg, #f92342 0%, #3433d0 55%, #101c4e 100%); }
+.kpi .et { color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.kpi .v { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 6px; letter-spacing: -.02em; }
 .kpi .d { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
-.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px; box-shadow: var(--shadow); }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
 .grid2 .card { margin-top: 0; }
 .chart { position: relative; width: 100%; margin-top: 10px; }
@@ -67,10 +77,11 @@ button.tema { background: var(--surface-1); color: var(--text-primary); border: 
 .tabla { overflow-x: auto; margin-top: 12px; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
 th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-th { color: var(--text-secondary); font-weight: 600; }
+th { color: var(--text-muted); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+tbody tr:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 th:first-child, td:first-child, td.izq, th.izq { text-align: left; }
 td.nota { text-align: left; white-space: normal; min-width: 180px; color: var(--text-secondary); }
-details summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; margin-top: 10px; }
+details summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 13px; margin-top: 10px; }
 footer { margin-top: 28px; color: var(--text-secondary); font-size: 13px; }
 footer li { margin: 4px 0; }
 .err { color: var(--crit-border); }
@@ -79,9 +90,12 @@ footer li { margin: 4px 0; }
 <body>
 <main>
   <header>
-    <div>
-      <h1>Seguidores de “Christmas Hits &amp; Cozy Classics”</h1>
-      <p class="sub">Seguidores = “guardada N veces” en Spotify · Jingle Vibes · hora de Tallin</p>
+    <div class="marca">
+      <div class="logo" aria-hidden="true">♪</div>
+      <div>
+        <h1>Seguidores de “Christmas Hits &amp; Cozy Classics”</h1>
+        <p class="sub">Seguidores = “guardada N veces” en Spotify · Jingle Vibes · hora de Tallin</p>
+      </div>
     </div>
     <button class="tema" id="tema" type="button">Tema: auto</button>
   </header>
@@ -139,11 +153,15 @@ const SVGNS = 'http://www.w3.org/2000/svg';
 const temas = ['auto', 'light', 'dark'];
 let tema = 'auto';
 try { tema = localStorage.getItem('tema') || 'auto'; } catch {}
+// Dentro de TickOS (?tema=light|dark): sigue el tema de TickOS y oculta el botón.
+const temaUrl = new URLSearchParams(location.search).get('tema');
+if (temaUrl === 'light' || temaUrl === 'dark') { tema = temaUrl; document.documentElement.classList.add('embebido'); }
 const aplicarTema = () => {
   if (tema === 'auto') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', tema);
   $('tema').textContent = `Tema: ${{ auto: 'auto', light: 'claro', dark: 'oscuro' }[tema]}`;
-  try { localStorage.setItem('tema', tema); } catch {}
+  // El tema que impone TickOS no se guarda como preferencia de la página suelta.
+  if (!document.documentElement.classList.contains('embebido')) { try { localStorage.setItem('tema', tema); } catch {} }
   dibujar();
 };
 $('tema').onclick = () => { tema = temas[(temas.indexOf(tema) + 1) % 3]; aplicarTema(); };
